@@ -39,7 +39,7 @@ var (
 		&sensu.PluginConfigOption[int64]{
 			Path:     "size",
 			Argument: "size",
-			Default:  1_000_000_000, // 1G
+			Default:  3_000_000_000, // Alarm at 3G, default DB is set to 4G 
 			Usage:    "Maximum aatabase Size",
 			Value:    &plugin.Size,
 		},
