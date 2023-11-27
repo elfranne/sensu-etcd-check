@@ -3,7 +3,6 @@ module github.com/elfranne/sensu-etcd-check
 go 1.19
 
 require (
-	github.com/Showmax/go-fqdn v1.0.0
 	github.com/sensu/core/v2 v2.19.0
 	github.com/sensu/sensu-plugin-sdk v0.18.0
 	go.etcd.io/etcd/client/v3 v3.5.10

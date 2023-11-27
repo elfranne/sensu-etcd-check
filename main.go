@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Showmax/go-fqdn"
 	corev2 "github.com/sensu/core/v2"
 	"github.com/sensu/sensu-plugin-sdk/sensu"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -16,7 +15,6 @@ type Config struct {
 	sensu.PluginConfig
 	Url    []string
 	Size   int64
-	Scheme string
 }
 
 var (
@@ -43,13 +41,6 @@ var (
 			Usage:    "Maximum aatabase Size",
 			Value:    &plugin.Size,
 		},
-		&sensu.PluginConfigOption[string]{
-			Path:      "scheme",
-			Argument:  "scheme",
-			Shorthand: "s",
-			Usage:     "Scheme to prepend metric",
-			Value:     &plugin.Scheme,
-		},
 	}
 )
 
@@ -60,18 +51,6 @@ func main() {
 
 func checkArgs(event *corev2.Event) (int, error) {
 	return sensu.CheckStateOK, nil
-}
-
-func GetScheme() string {
-	if len(plugin.Scheme) > 0 {
-		return plugin.Scheme
-	} else {
-		realfqdn, err := fqdn.FqdnHostname()
-		if err != nil {
-			fmt.Printf("failed to get FQDN: %s", err)
-		}
-		return realfqdn
-	}
 }
 
 func executeCheck(event *corev2.Event) (int, error) {
@@ -92,13 +71,10 @@ func executeCheck(event *corev2.Event) (int, error) {
 		return sensu.CheckStateCritical, nil
 	}
 
-	// print metrics
-	fmt.Printf("etcd_dbsize{hostname=\"%s\"} %d %d\n", GetScheme(), status.DbSize, time.Now().Unix())
-
 	if status.DbSize > plugin.Size {
-		fmt.Printf("# Database exeeding set limit (%d): %d\n", plugin.Size, status.DbSize)
+		fmt.Printf("Database exeeding set limit (%d): %d\n", plugin.Size, status.DbSize)
 		return sensu.CheckStateCritical, nil
 	}
-
+	fmt.Printf("Database is within size limit (%d): %d\n", plugin.Size, status.DbSize)
 	return sensu.CheckStateOK, nil
 }
