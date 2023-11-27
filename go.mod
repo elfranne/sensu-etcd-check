@@ -1,6 +1,6 @@
 module github.com/elfranne/sensu-etcd-check
 
-go 1.18
+go 1.19
 
 require (
 	github.com/Showmax/go-fqdn v1.0.0
