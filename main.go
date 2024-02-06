@@ -2,19 +2,27 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	corev2 "github.com/sensu/core/v2"
 	"github.com/sensu/sensu-plugin-sdk/sensu"
+	"go.etcd.io/etcd/client/pkg/v3/transport"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 // Config represents the check plugin config.
 type Config struct {
 	sensu.PluginConfig
-	Url    []string
-	Size   int64
+	Url           []string
+	Size          int64
+	CertFile      string
+	KeyFile       string
+	TrustedCAFile string
+	Timeout       int64
 }
 
 var (
@@ -37,9 +45,34 @@ var (
 		&sensu.PluginConfigOption[int64]{
 			Path:     "size",
 			Argument: "size",
-			Default:  3_000_000_000, // Alarm at 3G, default DB is set to 4G 
+			Default:  1_500_000_000, // Alarm at 1.5G, default DB is set to 2G
 			Usage:    "Maximum aatabase Size",
 			Value:    &plugin.Size,
+		},
+		&sensu.PluginConfigOption[string]{
+			Path:     "cert-file",
+			Argument: "cert-file",
+			Usage:    "Path to the cert",
+			Value:    &plugin.CertFile,
+		},
+		&sensu.PluginConfigOption[string]{
+			Path:     "key-file",
+			Argument: "key-file",
+			Usage:    "Path to the key",
+			Value:    &plugin.KeyFile,
+		},
+		&sensu.PluginConfigOption[string]{
+			Path:     "trusted-ca-file",
+			Argument: "trusted-ca-file",
+			Usage:    "Path to the CA file",
+			Value:    &plugin.TrustedCAFile,
+		},
+		&sensu.PluginConfigOption[int64]{
+			Path:     "timeout",
+			Argument: "timeout",
+			Usage:    "Request timeout",
+			Default:  5,
+			Value:    &plugin.Timeout,
 		},
 	}
 )
@@ -50,15 +83,42 @@ func main() {
 }
 
 func checkArgs(event *corev2.Event) (int, error) {
+
+	if _, err := os.Stat(plugin.CertFile); errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("could not load certificate(%s): %v", plugin.CertFile, err)
+		return sensu.CheckStateCritical, nil
+	}
+
+	if _, err := os.Stat(plugin.KeyFile); errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("could not load certificate key(%s): %v", plugin.KeyFile, err)
+		return sensu.CheckStateCritical, nil
+	}
+
+	if _, err := os.Stat(plugin.TrustedCAFile); errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("could not load CA(%s): %v", plugin.TrustedCAFile, err)
+		return sensu.CheckStateCritical, nil
+	}
+
 	return sensu.CheckStateOK, nil
 }
 
 func executeCheck(event *corev2.Event) (int, error) {
+	tlsConfig := &tls.Config{}
+	if len(plugin.CertFile) > 0 && len(plugin.KeyFile) > 0 && len(plugin.TrustedCAFile) > 0 {
+		tlsInfo := transport.TLSInfo{
+			CertFile:      plugin.CertFile,
+			KeyFile:       plugin.KeyFile,
+			TrustedCAFile: plugin.TrustedCAFile,
+		}
+		tlsConfig, _ = tlsInfo.ClientConfig()
+	}
 
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   plugin.Url,
-		DialTimeout: 5 * time.Second,
+		DialTimeout: time.Duration(plugin.Timeout) * time.Second,
+		TLS:         tlsConfig,
 	})
+
 	if err != nil {
 		fmt.Printf("could not connect: %s", err)
 		return sensu.CheckStateCritical, nil
