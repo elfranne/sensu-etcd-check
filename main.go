@@ -83,7 +83,7 @@ func main() {
 }
 
 func checkArgs(event *corev2.Event) (int, error) {
-	if len(plugin.CertFile) > 0 || len(plugin.KeyFile) > 0 || len(plugin.TrustedCAFile) > 0{ 
+	if len(plugin.CertFile) > 0 || len(plugin.KeyFile) > 0 || len(plugin.TrustedCAFile) > 0 {
 		if _, err := os.Stat(plugin.CertFile); errors.Is(err, os.ErrNotExist) {
 			fmt.Printf("could not load certificate(%s): %v", plugin.CertFile, err)
 			return sensu.CheckStateCritical, nil
@@ -123,7 +123,10 @@ func executeCheck(event *corev2.Event) (int, error) {
 		fmt.Printf("could not connect: %s", err)
 		return sensu.CheckStateCritical, nil
 	}
-	defer cli.Close()
+
+	defer func() {
+		_ = cli.Close()
+	}()
 
 	status, err := cli.Status(context.Background(), plugin.Url[0])
 	if err != nil {
