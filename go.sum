@@ -92,8 +92,8 @@ github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 go.etcd.io/etcd/api/v3 v3.6.12 h1:OLOZUKEuAA36TR48F0cIaa8FdzrWygjyfrJxXg4iDgs=
 go.etcd.io/etcd/api/v3 v3.6.12/go.mod h1:p14EIQXHbuOQbVvL/WEes5uqKnxP9AgKJgpjbMVvzvE=
-go.etcd.io/etcd/client/pkg/v3 v3.6.12 h1:36zzB+pQOdHbhN+kH2iJz/K8bJn0ZLtLfPPO7jozTDo=
-go.etcd.io/etcd/client/pkg/v3 v3.6.12/go.mod h1:hh2+ZXtfLzs3o6mn92ntgNPBrTJJOvXqICM5g3L3DMY=
+go.etcd.io/etcd/client/pkg/v3 v3.6.13 h1:7QeMOisYByx8dBA7/CKcwCaPWfjb5C0xpmrIov/8WyY=
+go.etcd.io/etcd/client/pkg/v3 v3.6.13/go.mod h1:Dn2zUBOCu/6xYcd6iAjB7LgoY16OTQjDZfWHLwvuQj4=
 go.etcd.io/etcd/client/v3 v3.6.12 h1:kMSP6JcPZMqSJiX+TXdUIBU/4eXEZWBAaui4VihMbIc=
 go.etcd.io/etcd/client/v3 v3.6.12/go.mod h1:CMs6fJWYiZQk4ytFjd4lE1diOvvRMmtbbn/alZXd3dQ=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
@@ -132,8 +132,8 @@ golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5h
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.42.0 h1:omrd2nAlyT5ESRdCLYdm3+fMfNFE/+Rf4bDIQImRJeo=
-golang.org/x/sys v0.42.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=
+golang.org/x/sys v0.45.0 h1:dO4czNzziLiiXplLQgBCEpCvXQ3dnkn0SdaZSYdQ+FY=
+golang.org/x/sys v0.45.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.3/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/text v0.36.0 h1:JfKh3XmcRPqZPKevfXVpI1wXPTqbkE5f7JA92a55Yxg=
