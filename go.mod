@@ -6,7 +6,7 @@ require (
 	github.com/sensu/core/v2 v2.21.3
 	github.com/sensu/sensu-plugin-sdk v0.19.0
 	go.etcd.io/etcd/client/pkg/v3 v3.6.13
-	go.etcd.io/etcd/client/v3 v3.6.12
+	go.etcd.io/etcd/client/v3 v3.6.13
 )
 
 require (
@@ -37,7 +37,7 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/spf13/viper v1.20.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	go.etcd.io/etcd/api/v3 v3.6.12 // indirect
+	go.etcd.io/etcd/api/v3 v3.6.13 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/net v0.55.0 // indirect
