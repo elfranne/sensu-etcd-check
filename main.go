@@ -17,7 +17,7 @@ import (
 // Config represents the check plugin config.
 type Config struct {
 	sensu.PluginConfig
-	Url           []string
+	URL           []string
 	Size          int64
 	CertFile      string
 	KeyFile       string
@@ -39,14 +39,14 @@ var (
 			Path:     "url",
 			Argument: "url",
 			Default:  []string{"http://127.0.0.1:2379"},
-			Usage:    "Url of etcd instance(s)",
-			Value:    &plugin.Url,
+			Usage:    "URL of etcd instance(s)",
+			Value:    &plugin.URL,
 		},
 		&sensu.PluginConfigOption[int64]{
 			Path:     "size",
 			Argument: "size",
 			Default:  1_500_000_000, // Alarm at 1.5G, default DB is set to 2G
-			Usage:    "Maximum aatabase Size",
+			Usage:    "Maximum database size",
 			Value:    &plugin.Size,
 		},
 		&sensu.PluginConfigOption[string]{
@@ -120,13 +120,13 @@ func executeCheck(event *corev2.Event) (int, error) {
 	}
 
 	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   plugin.Url,
+		Endpoints:   plugin.URL,
 		DialTimeout: time.Duration(plugin.Timeout) * time.Second,
 		TLS:         tlsConfig,
 	})
 
 	if err != nil {
-		fmt.Printf("could not connect: %s", err)
+		fmt.Printf("could not connect: %s\n", err)
 		return sensu.CheckStateCritical, nil
 	}
 
@@ -135,7 +135,7 @@ func executeCheck(event *corev2.Event) (int, error) {
 	}()
 
 	exitCode := sensu.CheckStateOK
-	for _, url := range plugin.Url {
+	for _, url := range plugin.URL {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(plugin.Timeout)*time.Second)
 		status, err := cli.Status(ctx, url)
 		cancel()
