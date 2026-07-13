@@ -89,18 +89,15 @@ func checkArgs(event *corev2.Event) (int, error) {
 		}
 
 		if _, err := os.Stat(plugin.CertFile); errors.Is(err, os.ErrNotExist) {
-			fmt.Printf("could not load certificate(%s): %v", plugin.CertFile, err)
-			return sensu.CheckStateCritical, nil
+			return sensu.CheckStateUnknown, fmt.Errorf("could not load certificate(%s): %w", plugin.CertFile, err)
 		}
 
 		if _, err := os.Stat(plugin.KeyFile); errors.Is(err, os.ErrNotExist) {
-			fmt.Printf("could not load certificate key(%s): %v", plugin.KeyFile, err)
-			return sensu.CheckStateCritical, nil
+			return sensu.CheckStateUnknown, fmt.Errorf("could not load certificate key(%s): %w", plugin.KeyFile, err)
 		}
 
 		if _, err := os.Stat(plugin.TrustedCAFile); errors.Is(err, os.ErrNotExist) {
-			fmt.Printf("could not load CA(%s): %v", plugin.TrustedCAFile, err)
-			return sensu.CheckStateCritical, nil
+			return sensu.CheckStateUnknown, fmt.Errorf("could not load CA(%s): %w", plugin.TrustedCAFile, err)
 		}
 	}
 	return sensu.CheckStateOK, nil
