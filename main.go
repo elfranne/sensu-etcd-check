@@ -128,7 +128,10 @@ func executeCheck(event *corev2.Event) (int, error) {
 		_ = cli.Close()
 	}()
 
-	status, err := cli.Status(context.Background(), plugin.Url[0])
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(plugin.Timeout)*time.Second)
+	defer cancel()
+
+	status, err := cli.Status(ctx, plugin.Url[0])
 	if err != nil {
 		fmt.Printf("failed to get status: %s", err)
 		return sensu.CheckStateCritical, nil
