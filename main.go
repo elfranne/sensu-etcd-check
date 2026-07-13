@@ -133,19 +133,23 @@ func executeCheck(event *corev2.Event) (int, error) {
 		_ = cli.Close()
 	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(plugin.Timeout)*time.Second)
-	defer cancel()
+	exitCode := sensu.CheckStateOK
+	for _, url := range plugin.Url {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(plugin.Timeout)*time.Second)
+		status, err := cli.Status(ctx, url)
+		cancel()
+		if err != nil {
+			fmt.Printf("failed to get status of %s: %s\n", url, err)
+			exitCode = sensu.CheckStateCritical
+			continue
+		}
 
-	status, err := cli.Status(ctx, plugin.Url[0])
-	if err != nil {
-		fmt.Printf("failed to get status: %s", err)
-		return sensu.CheckStateCritical, nil
+		if status.DbSize > plugin.Size {
+			fmt.Printf("Database on %s exceeding set limit (%d): %d\n", url, plugin.Size, status.DbSize)
+			exitCode = sensu.CheckStateCritical
+			continue
+		}
+		fmt.Printf("Database on %s is within size limit (%d): %d\n", url, plugin.Size, status.DbSize)
 	}
-
-	if status.DbSize > plugin.Size {
-		fmt.Printf("Database exeeding set limit (%d): %d\n", plugin.Size, status.DbSize)
-		return sensu.CheckStateCritical, nil
-	}
-	fmt.Printf("Database is within size limit (%d): %d\n", plugin.Size, status.DbSize)
-	return sensu.CheckStateOK, nil
+	return exitCode, nil
 }
