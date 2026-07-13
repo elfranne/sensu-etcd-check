@@ -107,7 +107,7 @@ func checkArgs(event *corev2.Event) (int, error) {
 }
 
 func executeCheck(event *corev2.Event) (int, error) {
-	tlsConfig := &tls.Config{}
+	var tlsConfig *tls.Config
 	if len(plugin.CertFile) > 0 && len(plugin.KeyFile) > 0 && len(plugin.TrustedCAFile) > 0 {
 		tlsInfo := transport.TLSInfo{
 			CertFile:      plugin.CertFile,
