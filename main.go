@@ -17,7 +17,7 @@ import (
 // Config represents the check plugin config.
 type Config struct {
 	sensu.PluginConfig
-	Url           []string
+	URL           []string
 	Size          int64
 	CertFile      string
 	KeyFile       string
@@ -39,14 +39,14 @@ var (
 			Path:     "url",
 			Argument: "url",
 			Default:  []string{"http://127.0.0.1:2379"},
-			Usage:    "Url of etcd instance(s)",
-			Value:    &plugin.Url,
+			Usage:    "URL of etcd instance(s)",
+			Value:    &plugin.URL,
 		},
 		&sensu.PluginConfigOption[int64]{
 			Path:     "size",
 			Argument: "size",
 			Default:  1_500_000_000, // Alarm at 1.5G, default DB is set to 2G
-			Usage:    "Maximum aatabase Size",
+			Usage:    "Maximum database size",
 			Value:    &plugin.Size,
 		},
 		&sensu.PluginConfigOption[string]{
@@ -84,43 +84,49 @@ func main() {
 
 func checkArgs(event *corev2.Event) (int, error) {
 	if len(plugin.CertFile) > 0 || len(plugin.KeyFile) > 0 || len(plugin.TrustedCAFile) > 0 {
+		if len(plugin.CertFile) == 0 || len(plugin.KeyFile) == 0 || len(plugin.TrustedCAFile) == 0 {
+			return sensu.CheckStateUnknown, fmt.Errorf("cert-file, key-file and trusted-ca-file must be set together")
+		}
+
 		if _, err := os.Stat(plugin.CertFile); errors.Is(err, os.ErrNotExist) {
-			fmt.Printf("could not load certificate(%s): %v", plugin.CertFile, err)
-			return sensu.CheckStateCritical, nil
+			return sensu.CheckStateUnknown, fmt.Errorf("could not load certificate(%s): %w", plugin.CertFile, err)
 		}
 
 		if _, err := os.Stat(plugin.KeyFile); errors.Is(err, os.ErrNotExist) {
-			fmt.Printf("could not load certificate key(%s): %v", plugin.KeyFile, err)
-			return sensu.CheckStateCritical, nil
+			return sensu.CheckStateUnknown, fmt.Errorf("could not load certificate key(%s): %w", plugin.KeyFile, err)
 		}
 
 		if _, err := os.Stat(plugin.TrustedCAFile); errors.Is(err, os.ErrNotExist) {
-			fmt.Printf("could not load CA(%s): %v", plugin.TrustedCAFile, err)
-			return sensu.CheckStateCritical, nil
+			return sensu.CheckStateUnknown, fmt.Errorf("could not load CA(%s): %w", plugin.TrustedCAFile, err)
 		}
 	}
 	return sensu.CheckStateOK, nil
 }
 
 func executeCheck(event *corev2.Event) (int, error) {
-	tlsConfig := &tls.Config{}
+	var tlsConfig *tls.Config
 	if len(plugin.CertFile) > 0 && len(plugin.KeyFile) > 0 && len(plugin.TrustedCAFile) > 0 {
 		tlsInfo := transport.TLSInfo{
 			CertFile:      plugin.CertFile,
 			KeyFile:       plugin.KeyFile,
 			TrustedCAFile: plugin.TrustedCAFile,
 		}
-		tlsConfig, _ = tlsInfo.ClientConfig()
+		var err error
+		tlsConfig, err = tlsInfo.ClientConfig()
+		if err != nil {
+			fmt.Printf("failed to build TLS config: %s\n", err)
+			return sensu.CheckStateUnknown, nil
+		}
 	}
 
 	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   plugin.Url,
+		Endpoints:   plugin.URL,
 		DialTimeout: time.Duration(plugin.Timeout) * time.Second,
 		TLS:         tlsConfig,
 	})
 
 	if err != nil {
-		fmt.Printf("could not connect: %s", err)
+		fmt.Printf("could not connect: %s\n", err)
 		return sensu.CheckStateCritical, nil
 	}
 
@@ -128,16 +134,23 @@ func executeCheck(event *corev2.Event) (int, error) {
 		_ = cli.Close()
 	}()
 
-	status, err := cli.Status(context.Background(), plugin.Url[0])
-	if err != nil {
-		fmt.Printf("failed to get status: %s", err)
-		return sensu.CheckStateCritical, nil
-	}
+	exitCode := sensu.CheckStateOK
+	for _, url := range plugin.URL {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(plugin.Timeout)*time.Second)
+		status, err := cli.Status(ctx, url)
+		cancel()
+		if err != nil {
+			fmt.Printf("failed to get status of %s: %s\n", url, err)
+			exitCode = sensu.CheckStateCritical
+			continue
+		}
 
-	if status.DbSize > plugin.Size {
-		fmt.Printf("Database exeeding set limit (%d): %d\n", plugin.Size, status.DbSize)
-		return sensu.CheckStateCritical, nil
+		if status.DbSize > plugin.Size {
+			fmt.Printf("Database on %s exceeding set limit (%d): %d\n", url, plugin.Size, status.DbSize)
+			exitCode = sensu.CheckStateCritical
+			continue
+		}
+		fmt.Printf("Database on %s is within size limit (%d): %d\n", url, plugin.Size, status.DbSize)
 	}
-	fmt.Printf("Database is within size limit (%d): %d\n", plugin.Size, status.DbSize)
-	return sensu.CheckStateOK, nil
+	return exitCode, nil
 }
