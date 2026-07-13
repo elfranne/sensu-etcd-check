@@ -1,6 +1,6 @@
 module github.com/elfranne/sensu-etcd-check
 
-go 1.26.5
+go 1.26.3
 
 require (
 	github.com/sensu/core/v2 v2.21.3
