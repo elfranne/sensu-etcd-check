@@ -110,7 +110,12 @@ func executeCheck(event *corev2.Event) (int, error) {
 			KeyFile:       plugin.KeyFile,
 			TrustedCAFile: plugin.TrustedCAFile,
 		}
-		tlsConfig, _ = tlsInfo.ClientConfig()
+		var err error
+		tlsConfig, err = tlsInfo.ClientConfig()
+		if err != nil {
+			fmt.Printf("failed to build TLS config: %s\n", err)
+			return sensu.CheckStateUnknown, nil
+		}
 	}
 
 	cli, err := clientv3.New(clientv3.Config{
