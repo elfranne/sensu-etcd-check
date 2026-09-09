@@ -1,22 +1,27 @@
 name: Go Lint
+
 permissions:
   contents: read
 
-on: [push]
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
+  lint:
     name: Lint
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v7
-    - name: Set up Go
-      uses: actions/setup-go@v7
-      with:
-        go-version-file: 'go.mod'
-    - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v9
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: 'go.mod'
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
