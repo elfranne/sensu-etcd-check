@@ -5,7 +5,7 @@ go 1.26.8
 require (
 	github.com/sensu/core/v2 v2.21.6
 	github.com/sensu/sensu-plugin-sdk v0.19.0
-	go.etcd.io/etcd/client/pkg/v3 v3.7.3
+	go.etcd.io/etcd/client/pkg/v3 v3.7.4
 	go.etcd.io/etcd/client/v3 v3.7.3
 )
 
